@@ -1,0 +1,84 @@
+name: "Terraform Plan"
+
+# Trigger when a pull request is received
+on:
+  push:
+    branches: [ develop ]
+
+env:
+  DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+  TF_VAR_project_name: ${{ secrets.PROJECT_NAME }}
+
+jobs:
+  terraform-plan:
+    name: "Terraform Plan"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Setup - Checkout"
+        uses: actions/checkout@v2.1.0
+
+      - name: "Setup - Security Scan"
+        uses: triat/terraform-security-scan@v2.2.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Setup - Terraform CLI"
+        uses: hashicorp/setup-terraform@v1.2.1
+
+      - name: Terraform Format check
+        id: fmt
+        run: terraform fmt -check
+
+      # Init Terraform
+      - name: "Run - Terraform Init"
+        run: terraform init -input=false
+
+      # Validate Terraform configs
+      - name: "Run - Terraform Validate"
+        run: terraform validate
+
+      - name: "Run - Terraform Workspace creation"
+        run: terraform workspace new development
+
+      # Generate terraform plan and store the artifacts
+      - name: "Run - Terraform Plan"
+        id: plan
+        run: terraform plan -no-color -out=./tf_development_plan
+        
+      - uses: actions/upload-artifact@v2
+        with:
+          name: terraform-artifact
+          path: ./tf_development_plan
+
+  terraform-apply:
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+ 
+    environment: 
+      name: development
+
+    # Add workflow dependency
+    needs: [terraform-plan]
+
+    steps:
+      - name: "Setup - Checkout"
+        uses: actions/checkout@v2.1.0
+
+      # Download terraform artifacts
+      - uses: actions/download-artifact@v2
+        with:
+          name: terraform-artifact
+
+      - name: "Setup - Terraform CLI"
+        uses: hashicorp/setup-terraform@v1.2.1
+
+      - name: "Run - Terraform Init"
+        run: terraform init -input=false
+
+      - name: "Run - Terraform Workspace creation"
+        run: terraform workspace new development
+
+      # Auto-approve prevents the requirement of human interaction
+      - name: "Run - Terraform Apply"
+        run: terraform apply -auto-approve "./tf_development_plan"
