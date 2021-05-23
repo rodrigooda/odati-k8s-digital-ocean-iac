@@ -8,7 +8,7 @@ on:
 env:
   DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
   TF_VAR_project_name: ${{ secrets.PROJECT_NAME }}
-  TF_VAR_do_k8s_nodepool_type: ${{ secrets.DO_K8S_NODEPOOL_TYPE }}
+  TF_VAR_do_k8s_node_type: ${{ secrets.DO_K8S_NODE_TYPE }}
 
 jobs:
   terraform-plan:
