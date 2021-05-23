@@ -79,6 +79,6 @@ resource "digitalocean_kubernetes_node_pool" "this" {
 }
 
 resource "digitalocean_container_registry" "this" {
-  name = "${var.project_name}-${local.env}"
+  name                   = "${var.project_name}-${local.env}"
   subscription_tier_slug = "starter"
 }
