@@ -3,7 +3,7 @@ name: "Terraform Plan"
 # Trigger when a pull request is received
 on:
   push:
-    branches: [ develop ]
+    branches: [ development ]
 
 env:
   DIGITALOCEAN_ACCESS_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
